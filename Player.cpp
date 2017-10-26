@@ -73,30 +73,30 @@ void Player::shoot()
 
 	//Set the mesh of the new projectile
 	temp->mesh = projectile.mesh;
-	temp->tex = projectile.tex;
 
 	//Make the new projectile's starting location equal to the player's 
-	//temp->transform = transform;
-	temp->location = glm::vec2(0.0f, 0.0f);
-	temp->move(location.x, location.y);
+	temp->transform = transform;
 	
-   	 
+	temp->location = location;
+
 	//Normalize the projectile's velocity vector so that projectiles will fire at the same speed regardless of the amount of tilt amount
 	glm::vec2 normalVel = glm::vec2(rStick.xAxis, rStick.yAxis);
 	float length = sqrt((normalVel.x * normalVel.x) + (normalVel.y * normalVel.y));
 	normalVel.x /= length;
 	normalVel.y /= length;
-
+	
 	//Essentially finding and rotating by the dot product with the unit y vector (0, 1)... It will just return normalVel.y
 	//Rotation value will always be between 0 and 180, so we need to just check which x direction the projectile is going to fix rotation
-	if (normalVel.x <= 0.0f)
+	if (normalVel.x >= 0.0f)
 	{
-		temp->rotate = glm::rotate(temp->rotate, acos(normalVel.y), glm::vec3(0.0f, 0.0f, 1.0f));
+		temp->rotate = glm::rotate(temp->transform, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		temp->rotate = glm::rotate(temp->rotate, -acos(normalVel.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	else
 	{
-		temp->rotate = glm::rotate(temp->rotate, -acos(normalVel.y), glm::vec3(0.0f, 0.0f, 1.0f));
+		temp->rotate = glm::rotate(temp->transform, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		temp->rotate = glm::rotate(temp->rotate, acos(normalVel.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	//Assign velovity

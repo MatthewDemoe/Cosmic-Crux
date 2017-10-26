@@ -11,6 +11,7 @@ public:
 	~Projectile();
 
 	glm::vec2 getVelocity();
+	void SetVelocity(float, float);
 
 private:
 	//Projectiles will be given an x and y velocity based on the direction the right controller stick is tilted. 

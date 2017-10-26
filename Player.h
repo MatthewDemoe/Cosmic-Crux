@@ -21,7 +21,7 @@ public:
 	Projectile projectile;
 	void deleteProjectile(int index);
 
-private: 
+private:
 	XBox::XBoxInput controller;
 	XBox::Stick lStick;
 	XBox::Stick rStick;

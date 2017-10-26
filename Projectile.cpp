@@ -21,3 +21,9 @@ glm::vec2 Projectile::getVelocity()
 {
 	return velocity;
 }
+
+void Projectile::SetVelocity(float x, float y)
+{
+	velocity.x = x;
+	velocity.y = y;
+}

@@ -3,6 +3,7 @@
 #include "Enemy.h"
 #include "Timer.h"
 #include "ShaderProgram.h"
+#include "EnemyManager.h"
 #include <WinUser.h>
 
 #define FRAMES_PER_SECOND 60
@@ -29,13 +30,14 @@ public:
 	Player player2;
 
 	//Vector of enemies, because we will be drawing some arbitrary amount
-	Enemy enemy;
 	std::vector<Enemy*> enemies;
+	Enemy enemy;
 
 	//Shaders
 	ShaderProgram passThrough;
 	ShaderProgram phongNoTexture;
-	ShaderProgram phong;
+
+	EnemyManager enemyManager;
 
 	glm::mat4 cameraTransform;
 	glm::mat4 cameraProjection;

@@ -28,29 +28,31 @@ void Game::initializeGame()
 
 	glEnable(GL_DEPTH_TEST);
 
+	enemyManager = EnemyManager(2.5f);
+
 	//Loading in meshes 
-	if (!passThrough.load("shaders/passThrough.vert", "shaders/passthrough.frag" ))
+	if (!passThrough.load("shaders/passThrough.vert", "shaders/passthrough.frag"))
 	{
 		std::cout << "Shaders failed to initialize." << std::endl;
 		system("pause");
 		exit(0);
 	}
 
-	if (!phong.load("shaders/phong.vert", "shaders/phong.frag"))
+	if (!phongNoTexture.load("shaders/phong.vert", "shaders/phongNoTexture.frag"))
 	{
 		std::cout << "Shaders failed to initialize." << std::endl;
 		system("pause");
 		exit(0);
 	}
 
-	if (!player.mesh.loadFromFile("meshes/Player_Ship.obj"))
+	if (!player.mesh.loadFromFile("meshes/monkey.obj"))
 	{
 		std::cout << "Player model failed to load." << std::endl;
 		system("pause");
 		exit(0);
 	}
 
-	if (!player2.mesh.loadFromFile("meshes/Player_Ship.obj"))
+	if (!player2.mesh.loadFromFile("meshes/monkey.obj"))
 	{
 		std::cout << "Player model failed to load." << std::endl;
 		system("pause");
@@ -64,35 +66,20 @@ void Game::initializeGame()
 		exit(0);
 	}
 
-	if (!player2.projectile.mesh.loadFromFile("meshes/bullet1.obj"))
-	{
-		std::cout << "Projectile model failed to load." << std::endl;
-		system("pause");
-		exit(0);
-	}
-
 	if (!enemy.mesh.loadFromFile("meshes/cube.obj"))
 	{
 		std::cout << "Player model failed to load." << std::endl;
 		system("pause");
 		exit(0);
 	}
+	
+	//Making starting enemy
+	enemyManager.Intialize();
 
-	cameraTransform = glm::translate(cameraTransform, glm::vec3(0.0f, 0.0f, -100.0f));
+
+	cameraTransform = glm::translate(cameraTransform, glm::vec3(0.0f, 0.0f, -10.0f));
 	cameraProjection = glm::perspective(45.0f, ((float)GetSystemMetrics(SM_CXSCREEN) / (float)GetSystemMetrics(SM_CYSCREEN)), 0.1f, 10000.0f);
-
-	//player.scale = glm::scale(player.transform, glm::vec3(0.3f, 0.3f, 0.3f));
-
-	player.loadTexture("Textures/fur.png");
-	player.projectile.loadTexture("Textures/fur.png");
-
-	//player2.scale = glm::scale(player2.transform, glm::vec3(0.3f, 0.3f, 0.3f));
-	player2.loadTexture("Textures/fur.png");
-	player2.projectile.loadTexture("Textures/fur.png");
-
-	enemy.loadTexture("Textures/fur.png");
-	enemy.move(1.0f, 1.0f);
-	enemies.push_back(&enemy);
+	player.scale = glm::scale(player.transform, glm::vec3(0.3f, 0.3f, 0.3f));
 }
 
 //Happens once per frame, used to update state of the game
@@ -106,13 +93,17 @@ void Game::update()
 
 	//Sets the player number, used for controller input (Player 1 uses controller 0, player 2 uses controller 1). I wanted a cleaner way to do this, but it works for now. 
 	player.setNum(0);
-	player2.setNum(1);
+	//player2.setNum(1);
 
 	//Get input from controller
 	player.xin();
-	player2.xin();
+	//player2.xin();
 
 	float deltaTime = updateTimer->getElapsedTimeS();
+
+	//enemyManager.Spawn(deltaTime);
+
+	enemyManager.Update(deltaTime);
 
 	//Iterate through projectile vector and move them all in the direction of their velocity
 	for (int i = 0; i < player.getProjectiles().size(); i++)
@@ -120,8 +111,8 @@ void Game::update()
 		player.getProjectiles()[i]->move(player.getProjectiles()[i]->getVelocity().x, player.getProjectiles()[i]->getVelocity().y);
 
 		//Erase the projectile if it leaves the screen 
-		if ((player.getProjectiles()[i]->location.x >= 10) || (player.getProjectiles()[i]->location.y >= 10) 
-			|| (player.getProjectiles()[i]->location.x <= -10) || (player.getProjectiles()[i]->location.y <= -10))
+		if ((player.getProjectiles()[i]->location.x >= 5) || (player.getProjectiles()[i]->location.y >= 5) 
+			|| (player.getProjectiles()[i]->location.x <= -5) || (player.getProjectiles()[i]->location.y <= -5))
 		{
 			player.deleteProjectile(i);
 			break;
@@ -134,46 +125,14 @@ void Game::update()
 			{
 				//Erase projectile, Erase enemy and spawn in a new location for now. 
 				player.deleteProjectile(i);
-				enemies.erase(enemies.begin() + j);
+				//enemies.erase(enemies.begin() + j);
 
 				float x = (rand() % 10) - 5;
 				float y = (rand() % 10) - 5;
 				
-				enemy.move(-enemy.location.x, -enemy.location.y);
-				enemy.move(x, y);
-				enemies.push_back(&enemy);
-			}
-		}
-	}
-
-	for (int i = 0; i < player2.getProjectiles().size(); i++)
-	{
-		player2.getProjectiles()[i]->move(player2.getProjectiles()[i]->getVelocity().x, player2.getProjectiles()[i]->getVelocity().y);
-	
-		//Erase the projectile if it leaves the screen 
-		if ((player2.getProjectiles()[i]->location.x >= 10) || (player2.getProjectiles()[i]->location.y >= 10)
-			|| (player2.getProjectiles()[i]->location.x <= -10) || (player2.getProjectiles()[i]->location.y <= -10))
-		{
-			player2.deleteProjectile(i);
-			break;
-		}
-	
-		//Iterate through each enemy, check if current projectile is intersecting with it
-		for (int j = 0; j < enemies.size(); j++)
-		{
-			if (player2.getProjectiles()[i]->collide(*enemies[j]))
-			{
-				//Erase projectile, Erase enemy and spawn in a new location for now. 
-				player2.deleteProjectile(i);
-				enemies.erase(enemies.begin() + j);
-	
-				float x = (rand() % 10) - 5;
-				float y = (rand() % 10) - 5;
-	
-				enemy.move(-enemy.location.x, -enemy.location.y);
-				enemy.move(x, y);
-				enemies.push_back(&enemy);
-				enemies[0]->tex = enemy.tex;
+				//enemy.move(-enemy.location.x, -enemy.location.y);
+				//enemy.move(x, y);
+				//enemies.push_back(&enemy);
 			}
 		}
 	}
@@ -184,29 +143,62 @@ void Game::draw()
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	phong.bind();
+	//render stuff
+	//passThrough.bind();
+	//passThrough.sendUniformMat4("uModel", glm::value_ptr(player.transform), false);
+	//passThrough.sendUniformMat4("uView", glm::value_ptr(cameraTransform), false);
+	//passThrough.sendUniformMat4("uProj", glm::value_ptr(cameraProjection), false);
 
-	player.draw(&phong, cameraTransform, cameraProjection);
-	player2.draw(&phong, cameraTransform, cameraProjection);
-	enemy.draw(&phong, cameraTransform, cameraProjection);
+	phongNoTexture.bind();
+	phongNoTexture.sendUniformMat4("uModel", glm::value_ptr(player.transform), false);
+	phongNoTexture.sendUniformMat4("uView", glm::value_ptr(cameraTransform), false);
+	phongNoTexture.sendUniformMat4("uProj", glm::value_ptr(cameraProjection), false);
+
+	phongNoTexture.sendUniform("lightPos", cameraTransform * glm::vec4(4.0f, 0.0f, 0.0f, 1.0f));
+	phongNoTexture.sendUniform("objectColor", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	phongNoTexture.sendUniform("lightAmbient", glm::vec3(0.5f, 0.5f, 0.5f));
+	phongNoTexture.sendUniform("lightDiffuse", glm::vec3(5.0f, 5.0f, 5.0f));
+	phongNoTexture.sendUniform("lightSpecular", glm::vec3(5.0f, 5.0f, 5.0f));
+
+	phongNoTexture.sendUniform("lightSpecularExponent", 50.0f);
+	phongNoTexture.sendUniform("attenuationConstant", 1.0f);
+	phongNoTexture.sendUniform("attenuationLinear", 0.1f);
+	phongNoTexture.sendUniform("attenuationQuadratic", 0.1f);
+
+	glBindVertexArray(player.mesh.vao);
+	glDrawArrays(GL_TRIANGLES, 0, player.mesh.getNumVertices());
+	glBindVertexArray(GL_NONE);
+
+	//passThrough.sendUniformMat4("uModel", glm::value_ptr(player2.transform), false);
+	//
+	//glBindVertexArray(player2.vao);
+	//glDrawArrays(GL_TRIANGLES, 0, player2.getNumVertices());
+	//glBindVertexArray(GL_NONE);
+
 	//Iterate through vector of enemies and draw each one
-	//for (int i = 0; i < enemies.size(); i++)
-	//{
-	//	enemies[i]->draw(&phong, cameraTransform, cameraProjection);
-	//}
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		phongNoTexture.sendUniformMat4("uModel", glm::value_ptr(enemies[i]->transform), false);
+
+		glBindVertexArray(enemies[i]->mesh.vao);
+		glDrawArrays(GL_TRIANGLES, 0, enemies[i]->mesh.getNumVertices());
+		glBindVertexArray(GL_NONE);
+	}
 
 	//Iterate through vector of projectiles and draw each one
 	for (int i = 0; i < player.getProjectiles().size(); i++)
 	{
-		player.getProjectiles()[i]->draw(&phong, cameraTransform, cameraProjection);
-	}
+		phongNoTexture.sendUniformMat4("uModel", glm::value_ptr(player.getProjectiles()[i]->transform), false);
 
-	for (int i = 0; i < player2.getProjectiles().size(); i++)
-	{
-		player2.getProjectiles()[i]->draw(&phong, cameraTransform, cameraProjection);
+		glBindVertexArray(player.getProjectiles()[i]->mesh.vao);
+		glDrawArrays(GL_TRIANGLES, 0, player.getProjectiles()[i]->mesh.getNumVertices());
+		glBindVertexArray(GL_NONE);
 	}
 	
-	phong.unbind();
+	enemyManager.Draw(phongNoTexture);
+
+
+	phongNoTexture.unbind();
 
 	glutSwapBuffers();
 }
