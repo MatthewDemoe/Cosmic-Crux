@@ -1,15 +1,13 @@
 ﻿  Game.cpp
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(102): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(118): warning C4018: '<': signed/unsigned mismatch
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(131): warning C4018: '<': signed/unsigned mismatch
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(139): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(140): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(40): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
 c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(149): warning C4018: '<': signed/unsigned mismatch
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(162): warning C4018: '<': signed/unsigned mismatch
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(170): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(171): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(199): warning C4018: '<': signed/unsigned mismatch
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(204): warning C4018: '<': signed/unsigned mismatch
-c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(242): warning C4065: switch statement contains 'default' but no 'case' labels
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(159): warning C4018: '<': signed/unsigned mismatch
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(180): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(185): warning C4018: '<': signed/unsigned mismatch
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(222): warning C4018: '<': signed/unsigned mismatch
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(226): warning C4018: '<': signed/unsigned mismatch
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(233): warning C4018: '<': signed/unsigned mismatch
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(238): warning C4018: '<': signed/unsigned mismatch
+c:\users\100610337\documents\visual studio 2015\projects\year 2\semester 1\computer graphics\tutorial 1 - testing\tutorial 1\game.cpp(286): warning C4065: switch statement contains 'default' but no 'case' labels
   Tutorial 1.vcxproj -> C:\Users\100610337\Documents\Visual Studio 2015\Projects\Year 2\Semester 1\Computer Graphics\Tutorial 1 - Testing\Debug\Tutorial 1.exe
   Tutorial 1.vcxproj -> C:\Users\100610337\Documents\Visual Studio 2015\Projects\Year 2\Semester 1\Computer Graphics\Tutorial 1 - Testing\Debug\Tutorial 1.pdb (Partial PDB)

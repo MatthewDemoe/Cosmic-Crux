@@ -11,6 +11,7 @@ public:
 	float getElapsedTimeMS();
 	float getElapsedTimeS();
 	float getCurrentTime();
+	float getTotalTime();
 
 private:
 	float currentTime, previousTime, elapsedTime;

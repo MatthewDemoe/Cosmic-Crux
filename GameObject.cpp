@@ -41,26 +41,32 @@ bool GameObject::collide(GameObject other)
 	return false;
 }
 
-void GameObject::draw(ShaderProgram *shader, glm::mat4 cameraTransform, glm::mat4 cameraProjection)
+void GameObject::draw(ShaderProgram &shader, glm::mat4 cameraTransform, glm::mat4 cameraProjection, std::vector<Light> pointLights)
 {
-	shader->sendUniformMat4("uModel", glm::value_ptr(transform), false);
-	shader->sendUniformMat4("uView", glm::value_ptr(cameraTransform), false);
-	shader->sendUniformMat4("uProj", glm::value_ptr(cameraProjection), false);
-		  
-	shader->sendUniform("uTex", 0);
-
-	shader->sendUniform("lightPos", cameraTransform * glm::vec4(4.0f, 0.0f, 0.0f, 1.0f));
-	shader->sendUniform("objectColor", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-	shader->sendUniform("lightAmbient", glm::vec3(0.5f, 0.5f, 0.5f));
-	shader->sendUniform("lightDiffuse", glm::vec3(5.0f, 5.0f, 5.0f));
-	shader->sendUniform("lightSpecular", glm::vec3(5.0f, 5.0f, 5.0f));
-
-	shader->sendUniform("lightSpecularExponent", 50.0f);
-	shader->sendUniform("attenuationConstant", 1.0f);
-	shader->sendUniform("attenuationLinear", 0.1f);
-	shader->sendUniform("attenuationQuadratic", 0.1f);
-
 	tex.bind();
+	shader.sendUniformMat4("uModel", glm::value_ptr(transform), false);
+	shader.sendUniformMat4("uView", glm::value_ptr(cameraTransform), false);
+	shader.sendUniformMat4("uProj", glm::value_ptr(cameraProjection), false);
+		  
+	shader.sendUniform("uTex", 0);
+
+	for (int i = 0; i < pointLights.size(); i++)
+	{
+		std::string prefix = "pointLight.";
+		shader.sendUniform(prefix + "position", cameraTransform * pointLights[i].position);
+		shader.sendUniform(prefix + "ambient", pointLights[i].ambient);
+		shader.sendUniform(prefix + "diffuse", pointLights[i].diffuse);
+		shader.sendUniform(prefix + "specular", pointLights[i].specular);
+
+		shader.sendUniform(prefix + "specularExponent", pointLights[i].specularExponent);
+		shader.sendUniform(prefix + "constantAttenuation", pointLights[i].constantAttenuation);
+		shader.sendUniform(prefix + "linearAttenuation", pointLights[i].linearAttenuation);
+		shader.sendUniform(prefix + "quadraticAttenuation", pointLights[i].quadraticAttenuation);
+	}
+
+	//shader.sendUniform("objectColor", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
+
 	glBindVertexArray(mesh.vao);
 	glDrawArrays(GL_TRIANGLES, 0, mesh.getNumVertices());
 	glBindVertexArray(GL_NONE);

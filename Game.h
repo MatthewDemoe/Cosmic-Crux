@@ -1,9 +1,11 @@
 #pragma once
 #include "Player.h"
-#include "Enemy.h"
-#include "Timer.h"
+#include "BasicEnemy.h"
+#include "CircleEnemy.h"
+#include "Light.h"
 #include "ShaderProgram.h"
 #include <WinUser.h>
+#include <vector>
 
 #define FRAMES_PER_SECOND 60
 
@@ -14,6 +16,7 @@ public:
 	~Game();
 
 	void initializeGame();
+	void reloadGame();
 	void update();
 	void draw();
 
@@ -27,19 +30,25 @@ public:
 	Timer* updateTimer = nullptr;
 	Player player;
 	Player player2;
+	std::vector<Player*> players;
 
 	//Vector of enemies, because we will be drawing some arbitrary amount
-	Enemy enemy;
+	BasicEnemy basicEnemy;
+	CircleEnemy circleEnemy;
 	std::vector<Enemy*> enemies;
+	std::vector<Light> pointLights;
 
 	//Shaders
-	ShaderProgram passThrough;
-	ShaderProgram phongNoTexture;
 	ShaderProgram phong;
 
 	glm::mat4 cameraTransform;
 	glm::mat4 cameraProjection;
+	glm::mat4 lightSpinner;
 
 private:
-	
+	bool shouldLightsSpin = false;
+	enum gameStates{main, gameOver};
+	gameStates state;
+	float basicDelay = 0.0f;
+	float circleDelay = 0.0f;
 };

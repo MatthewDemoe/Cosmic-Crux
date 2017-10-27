@@ -36,3 +36,8 @@ float Timer::getCurrentTime()
 {
 	return currentTime;
 }
+
+float Timer::getTotalTime()
+{
+	return glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+}

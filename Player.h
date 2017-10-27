@@ -1,17 +1,21 @@
 #pragma once
 #include <vector>
+#include "Timer.h"
 #include "Projectile.h"
+#include "Enemy.h"
 
 
 class Player : public GameObject
 {
 public:
+	friend class Game;
 	Player();
 	~Player();
 
 	//Getting input from the controller
 	void xin();
 	void shoot();
+	void update(std::vector<Enemy*> enemies);
 
 	XBox::Stick getLStick();
 	XBox::Stick getRStick();
@@ -20,6 +24,7 @@ public:
 	void setNum(int num);
 	Projectile projectile;
 	void deleteProjectile(int index);
+	Timer* updateTimer = nullptr;
 
 private: 
 	XBox::XBoxInput controller;

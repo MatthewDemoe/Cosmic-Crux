@@ -16,26 +16,46 @@ Game::~Game()
 {
 	delete updateTimer;
 	
-	passThrough.unload();
-	phongNoTexture.unload();
+	phong.unload();
 	player.mesh.unload();
+	player2.mesh.unload();
+	player.projectile.mesh.unload();
+	player2.projectile.mesh.unload();
+	basicEnemy.mesh.unload();
+	basicEnemy.projectile.mesh.unload();
+
+	player.tex.unload();
+	player2.tex.unload();
+	player.projectile.tex.unload();
+	player2.projectile.tex.unload();
+	basicEnemy.tex.unload();
+	basicEnemy.projectile.tex.unload();
 }
 
 //Happens once at the beginning of the game
 void Game::initializeGame()
 {
+	state = main;
 	updateTimer = new Timer();
+	std::srand(time(NULL));
 
 	glEnable(GL_DEPTH_TEST);
 
-	//Loading in meshes 
-	if (!passThrough.load("shaders/passThrough.vert", "shaders/passthrough.frag" ))
-	{
-		std::cout << "Shaders failed to initialize." << std::endl;
-		system("pause");
-		exit(0);
-	}
+	Light light1;
 
+	light1.position = glm::vec4(0.0f, 0.0f, 15.0f, 1.0f);
+	light1.ogPosition = light1.position;
+	light1.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	light1.diffuse = glm::vec3(5.0f, 5.0f, 5.0f);
+	light1.specular = glm::vec3(0.1f, 0.1f, 0.1f);
+	light1.specularExponent = 1.0f;
+	light1.constantAttenuation = 1.0f;
+	light1.linearAttenuation = 0.1f;
+	light1.quadraticAttenuation = 0.01f;
+
+	pointLights.push_back(light1);
+
+	//Loading in meshes
 	if (!phong.load("shaders/phong.vert", "shaders/phong.frag"))
 	{
 		std::cout << "Shaders failed to initialize." << std::endl;
@@ -71,139 +91,152 @@ void Game::initializeGame()
 		exit(0);
 	}
 
-	if (!enemy.mesh.loadFromFile("meshes/cube.obj"))
+	if (!basicEnemy.mesh.loadFromFile("meshes/cube.obj"))
 	{
 		std::cout << "Player model failed to load." << std::endl;
 		system("pause");
 		exit(0);
 	}
 
-	cameraTransform = glm::translate(cameraTransform, glm::vec3(0.0f, 0.0f, -100.0f));
+	if (!basicEnemy.projectile.mesh.loadFromFile("meshes/bullet1.obj"))
+	{
+		std::cout << "Player model failed to load." << std::endl;
+		system("pause");
+		exit(0);
+	}
+
+	cameraTransform = glm::translate(cameraTransform, glm::vec3(0.0f, 0.0f, -30.0f));
 	cameraProjection = glm::perspective(45.0f, ((float)GetSystemMetrics(SM_CXSCREEN) / (float)GetSystemMetrics(SM_CYSCREEN)), 0.1f, 10000.0f);
 
-	//player.scale = glm::scale(player.transform, glm::vec3(0.3f, 0.3f, 0.3f));
+	player.scale = glm::scale(player.transform, glm::vec3(0.3f, 0.3f, 0.3f));
 
 	player.loadTexture("Textures/fur.png");
 	player.projectile.loadTexture("Textures/fur.png");
 
-	//player2.scale = glm::scale(player2.transform, glm::vec3(0.3f, 0.3f, 0.3f));
+	player2.scale = glm::scale(player2.transform, glm::vec3(0.3f, 0.3f, 0.3f));
 	player2.loadTexture("Textures/fur.png");
 	player2.projectile.loadTexture("Textures/fur.png");
 
-	enemy.loadTexture("Textures/fur.png");
-	enemy.move(1.0f, 1.0f);
-	enemies.push_back(&enemy);
+	player.setNum(0);
+	player2.setNum(1);
+
+	basicEnemy.projectile.loadTexture("Textures/fur.png");
+
+	basicEnemy.loadTexture("Textures/fur.png");
+	
+	players.push_back(&player);
+	players.push_back(&player2);
+
 }
 
 //Happens once per frame, used to update state of the game
 void Game::update()
 {
 
-	std::srand(time(NULL));
-
-	//Update timer so we have correct delta time since last update
-	updateTimer->tick();
-
-	//Sets the player number, used for controller input (Player 1 uses controller 0, player 2 uses controller 1). I wanted a cleaner way to do this, but it works for now. 
-	player.setNum(0);
-	player2.setNum(1);
-
-	//Get input from controller
-	player.xin();
-	player2.xin();
-
-	float deltaTime = updateTimer->getElapsedTimeS();
-
-	//Iterate through projectile vector and move them all in the direction of their velocity
-	for (int i = 0; i < player.getProjectiles().size(); i++)
+	if (state == main)
 	{
-		player.getProjectiles()[i]->move(player.getProjectiles()[i]->getVelocity().x, player.getProjectiles()[i]->getVelocity().y);
+		//std::cout << "Main" << std::endl;
+		//Update timer so we have correct delta time since last update
+		updateTimer->tick();
+		basicDelay += updateTimer->getElapsedTimeS();
+		circleDelay += updateTimer->getElapsedTimeS();
 
-		//Erase the projectile if it leaves the screen 
-		if ((player.getProjectiles()[i]->location.x >= 10) || (player.getProjectiles()[i]->location.y >= 10) 
-			|| (player.getProjectiles()[i]->location.x <= -10) || (player.getProjectiles()[i]->location.y <= -10))
+
+		//Get input from controller
+		player.xin();
+		player2.xin();
+
+		for (int i = 0; i < enemies.size(); i++)
 		{
-			player.deleteProjectile(i);
-			break;
+			enemies[i]->update(players);
+
+			if (enemies[i]->location.y <= -20)
+			{
+				enemies.erase(enemies.begin() + i);
+				break;
+			}
+
+			for (int j = 0; j < enemies[i]->projectiles.size(); j++)
+			{
+				if (enemies[i]->projectiles[j]->collide(player) || enemies[i]->projectiles[j]->collide(player2))
+				{
+					state = gameOver;
+					std::cout << "Game Over" << std::endl;
+				}
+			}
+		}
+		std::cout << basicDelay << std::endl;
+		if (basicDelay >= BasicEnemy().spawnDelay)
+		{
+			std::cout << "basic delay" << std::endl;
+			basicDelay = 0.0f;
+
+			BasicEnemy* temp = new BasicEnemy();
+			temp->mesh = basicEnemy.mesh;
+			temp->tex = basicEnemy.tex;
+			temp->projectile.mesh = basicEnemy.projectile.mesh;
+			temp->projectile.tex = basicEnemy.projectile.tex;
+
+			float x = (rand() % 20);
+			temp->move(x, 30.0f);
+			enemies.push_back(temp);
 		}
 
-		//Iterate through each enemy, check if current projectile is intersecting with it
-		for (int j = 0; j < enemies.size(); j++)
+		for (int i = 0; i < players.size(); i++)
 		{
-			if (player.getProjectiles()[i]->collide(*enemies[j]))
-			{
-				//Erase projectile, Erase enemy and spawn in a new location for now. 
-				player.deleteProjectile(i);
-				enemies.erase(enemies.begin() + j);
-
-				float x = (rand() % 10) - 5;
-				float y = (rand() % 10) - 5;
-				
-				enemy.move(-enemy.location.x, -enemy.location.y);
-				enemy.move(x, y);
-				enemies.push_back(&enemy);
-			}
+			players[i]->update(enemies);
 		}
 	}
 
-	for (int i = 0; i < player2.getProjectiles().size(); i++)
+	if (state == gameOver)
 	{
-		player2.getProjectiles()[i]->move(player2.getProjectiles()[i]->getVelocity().x, player2.getProjectiles()[i]->getVelocity().y);
-	
-		//Erase the projectile if it leaves the screen 
-		if ((player2.getProjectiles()[i]->location.x >= 10) || (player2.getProjectiles()[i]->location.y >= 10)
-			|| (player2.getProjectiles()[i]->location.x <= -10) || (player2.getProjectiles()[i]->location.y <= -10))
-		{
-			player2.deleteProjectile(i);
-			break;
-		}
-	
-		//Iterate through each enemy, check if current projectile is intersecting with it
-		for (int j = 0; j < enemies.size(); j++)
-		{
-			if (player2.getProjectiles()[i]->collide(*enemies[j]))
-			{
-				//Erase projectile, Erase enemy and spawn in a new location for now. 
-				player2.deleteProjectile(i);
-				enemies.erase(enemies.begin() + j);
-	
-				float x = (rand() % 10) - 5;
-				float y = (rand() % 10) - 5;
-	
-				enemy.move(-enemy.location.x, -enemy.location.y);
-				enemy.move(x, y);
-				enemies.push_back(&enemy);
-				enemies[0]->tex = enemy.tex;
-			}
-		}
+		phong.unload();
+		player.mesh.unload();
+		player2.mesh.unload();
+		player.projectile.mesh.unload();
+		player2.projectile.mesh.unload();
+		basicEnemy.mesh.unload();
+		basicEnemy.projectile.mesh.unload();
+
+		player.tex.unload();
+		player2.tex.unload();
+		player.projectile.tex.unload();
+		player2.projectile.tex.unload();
+		basicEnemy.tex.unload();
+		basicEnemy.projectile.tex.unload();
 	}
 }
 
 void Game::draw()
 {
-	glClearColor(0, 0, 0, 0);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	phong.bind();
 
-	player.draw(&phong, cameraTransform, cameraProjection);
-	player2.draw(&phong, cameraTransform, cameraProjection);
-	enemy.draw(&phong, cameraTransform, cameraProjection);
+	player.draw(phong, cameraTransform, cameraProjection, pointLights);
+	player2.draw(phong, cameraTransform, cameraProjection, pointLights);
+
 	//Iterate through vector of enemies and draw each one
-	//for (int i = 0; i < enemies.size(); i++)
-	//{
-	//	enemies[i]->draw(&phong, cameraTransform, cameraProjection);
-	//}
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		enemies[i]->draw(phong, cameraTransform, cameraProjection, pointLights);
+
+		for (int j = 0; j < enemies[i]->getProjectiles().size(); j++)
+		{
+			enemies[i]->getProjectiles()[j]->draw(phong, cameraTransform, cameraProjection, pointLights);
+		}
+	}
 
 	//Iterate through vector of projectiles and draw each one
 	for (int i = 0; i < player.getProjectiles().size(); i++)
 	{
-		player.getProjectiles()[i]->draw(&phong, cameraTransform, cameraProjection);
+		player.getProjectiles()[i]->draw(phong, cameraTransform, cameraProjection, pointLights);
 	}
 
 	for (int i = 0; i < player2.getProjectiles().size(); i++)
 	{
-		player2.getProjectiles()[i]->draw(&phong, cameraTransform, cameraProjection);
+		player2.getProjectiles()[i]->draw(phong, cameraTransform, cameraProjection, pointLights);
 	}
 	
 	phong.unbind();
@@ -226,8 +259,16 @@ void Game::keyboardDown(unsigned char key, int mouseX, int mouseY)
 
 	case 'r':
 	case 'R':
-		//player.isRotating = !player.isRotating;
+		if (state == gameOver)
+			initializeGame();
+
 		break;
+
+	case 'l':
+	case 'L':
+		shouldLightsSpin = !shouldLightsSpin;
+		break;
+
 	default:
 		break;
 	}

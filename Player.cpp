@@ -4,7 +4,8 @@
 
 Player::Player()
 {
-
+	updateTimer = new Timer();
+	updateTimer->tick();
 }
 
 Player::~Player()
@@ -16,11 +17,46 @@ Player::~Player()
 	}
 }
 
+void Player::update(std::vector<Enemy*> enemies)
+{
+	updateTimer->tick();
+	xin();
+
+	for (int i = 0; i < projectiles.size(); i++)
+	{
+		projectiles[i]->move(projectiles[i]->getVelocity().x, projectiles[i]->getVelocity().y);
+
+		//Erase the projectile if it leaves the screen 
+		if ((projectiles[i]->location.x >= 10) || (projectiles[i]->location.y >= 10)
+			|| (projectiles[i]->location.x <= -10) || (projectiles[i]->location.y <= -10))
+		{
+			deleteProjectile(i);
+			break;
+		}
+
+		//Iterate through each enemy, check if current projectile is intersecting with it
+		for (int j = 0; j < enemies.size(); j++)
+		{
+			if (projectiles[i]->collide(*enemies[j]))
+			{
+				//Erase projectile, Erase enemy and spawn in a new location for now. 
+				deleteProjectile(i);
+
+				float x = (rand() % 10) - 5;
+				float y = (rand() % 10) - 5;
+
+				enemies[j]->move(-enemies[j]->location.x, -enemies[j]->location.y);
+				enemies[j]->move(x, y);
+			}
+		}
+	}
+}
+
 //Getting input from the controller
 void Player::xin()
 {
 	//Used for shooting delay
-	localTime += 0.01f;
+	localTime += updateTimer->getElapsedTimeS();
 	
 	//poll controller
 	controller.DownloadPackets(2);
@@ -100,7 +136,7 @@ void Player::shoot()
 	}
 
 	//Assign velovity
-	temp->velocity = glm::vec2(0.1 * normalVel.x, 0.1 * normalVel.y);
+	temp->velocity = glm::vec2(0.2 * normalVel.x, 0.2 * normalVel.y);
 
 	projectiles.push_back(temp);
 }
