@@ -12,10 +12,11 @@ public:
 	//GameObject();
 
 	//Constructor with defalt values
-	GameObject(glm::vec2 loc = glm::vec2(0.0f, 0.0f), float rad = 0.15f);
+	GameObject(glm::vec2 loc = glm::vec2(0.0f, 0.0f), float rad = 0.3f);
 	~GameObject();
 
 	void move(float x, float y);
+	void setLocation(float x, float y);
 
 	//Will hold the object's location. vec2 because z axis doesn't matter
 	glm::vec2 location = glm::vec2(0.0f, 0.0f);
@@ -32,7 +33,9 @@ public:
 
 	glm::mat4 translate;
 	glm::mat4 rotate;
+	glm::mat4 ogRotate;
 	glm::mat4 scale;
+	glm::mat4 ogScale;
 
 	Mesh mesh;
 	Texture tex;

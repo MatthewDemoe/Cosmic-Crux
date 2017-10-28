@@ -27,6 +27,16 @@ void GameObject::move(float x, float y)
 	transform = glm::translate(translate, glm::vec3(0.0f, 0.0f, 0.0f)) * rotate * scale;
 }
 
+void GameObject::setLocation(float x, float y)
+{
+	translate = glm::translate(translate, glm::vec3(-location.x, -location.y, 0.0f));
+	
+	location.x = 0.0f;
+	location.y = 0.0f;
+
+	move(x, y);
+}
+
 //Check if two objects are intersecting, just using collisions spheres for now
 bool GameObject::collide(GameObject other)
 {
@@ -43,6 +53,7 @@ bool GameObject::collide(GameObject other)
 
 void GameObject::draw(ShaderProgram &shader, glm::mat4 cameraTransform, glm::mat4 cameraProjection, std::vector<Light> pointLights)
 {
+	shader.bind();
 	tex.bind();
 	shader.sendUniformMat4("uModel", glm::value_ptr(transform), false);
 	shader.sendUniformMat4("uView", glm::value_ptr(cameraTransform), false);
@@ -71,6 +82,7 @@ void GameObject::draw(ShaderProgram &shader, glm::mat4 cameraTransform, glm::mat
 	glDrawArrays(GL_TRIANGLES, 0, mesh.getNumVertices());
 	glBindVertexArray(GL_NONE);
 	tex.unbind();
+	shader.unbind();
 }
 
 void GameObject::loadTexture(const std::string & texFile)

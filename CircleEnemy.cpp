@@ -4,7 +4,7 @@ CircleEnemy::CircleEnemy()
 {
 	velocity = glm::vec2(0.1f, -0.025f);
 	delay = 2.0f;
-	spawnDelay = 10.0f;
+	spawnDelay = 20.0f;
 }
 
 CircleEnemy::~CircleEnemy()

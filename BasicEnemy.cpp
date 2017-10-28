@@ -4,7 +4,7 @@ BasicEnemy::BasicEnemy()
 {
 	velocity = glm::vec2(0.1f, -0.025f);
 	delay = 1.0f;
-	spawnDelay = 5.0f;
+	spawnDelay = 7.5f;
 }
 
 BasicEnemy::~BasicEnemy()
@@ -34,6 +34,18 @@ void BasicEnemy::update(std::vector<Player*> players)
 	for (int i = 0; i < getProjectiles().size(); i++)
 	{
 		projectiles[i]->move(projectiles[i]->getVelocity().x, projectiles[i]->getVelocity().y);
+
+		if(players[0]->getTransform() && players[1]->getTransform())
+		{
+			if (projectiles[i]->collide(players[1]->shield))
+			{
+				projectiles.erase(projectiles.begin() + i);
+				break;
+			}
+		}
+
+
+
 		if(projectiles[i]->isOffscreen())
 		{
 			projectiles.erase(projectiles.begin() + i);
@@ -56,8 +68,19 @@ void BasicEnemy::shoot(std::vector<Player*> players)
 	temp->location = glm::vec2(0.0f, 0.0f);
 	temp->move(location.x, location.y);
 
+	int target = 0;
 	//Normalize the projectile's velocity vector so that projectiles will fire at the same speed regardless of the amount of tilt amount
-	glm::vec2 enemyToPlayer = glm::vec2(players[0]->location.x - location.x, players[0]->location.y - location.y);
+	if (players[0]->isAlive() && players[1]->isAlive())
+		target = rand() % (players.size());
+
+	else if (players[0]->isAlive())
+		target = 0;
+
+	else 
+		target = 1;
+
+	glm::vec2 enemyToPlayer = glm::vec2(players[target]->location.x - location.x, players[target]->location.y - location.y);
+
 	float length = sqrt((enemyToPlayer.x * enemyToPlayer.x) + (enemyToPlayer.y * enemyToPlayer.y));
 	enemyToPlayer.x /= length;
 	enemyToPlayer.y /= length;

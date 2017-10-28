@@ -13,11 +13,11 @@ public:
 	~Player();
 
 	//Getting input from the controller
-	void xin();
+	void xin(Player* otherPlayer);
 	void shoot();
-	void update(std::vector<Enemy*> enemies);
+	void update(std::vector<Enemy*>* enemies, Player* otherPlayer);
 
-	XBox::Stick getLStick();
+	XBox::Stick getLStick(); 
 	XBox::Stick getRStick();
 
 	std::vector<Projectile*> getProjectiles();
@@ -26,6 +26,17 @@ public:
 	void deleteProjectile(int index);
 	Timer* updateTimer = nullptr;
 
+	bool getTransform() { return isTransformed; }
+	bool isAlive() { return alive; }
+
+	float progress = 0;
+	float transformMax = 15;
+
+	GameObject blackBar;
+	GameObject yellowBar;
+
+	GameObject shield;
+
 private: 
 	XBox::XBoxInput controller;
 	XBox::Stick lStick;
@@ -33,7 +44,8 @@ private:
 	int playerNum;
 	float delay = 0.25f;
 	float localTime = 0.0f;
-
+	bool isTransformed = false;
+	bool alive = true;
 
 	//Vector containing all the projectiles the player has fired. Stored in player for collision purposes. 
 	std::vector<Projectile*> projectiles;

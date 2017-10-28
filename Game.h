@@ -16,7 +16,6 @@ public:
 	~Game();
 
 	void initializeGame();
-	void reloadGame();
 	void update();
 	void draw();
 
@@ -37,6 +36,9 @@ public:
 	CircleEnemy circleEnemy;
 	std::vector<Enemy*> enemies;
 	std::vector<Light> pointLights;
+	GameObject red; 
+	GameObject blue; 
+	GameObject purple;
 
 	//Shaders
 	ShaderProgram phong;

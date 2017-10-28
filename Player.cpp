@@ -17,54 +17,124 @@ Player::~Player()
 	}
 }
 
-void Player::update(std::vector<Enemy*> enemies)
+void Player::update(std::vector<Enemy*>* enemies, Player* otherPlayer)
 {
 	updateTimer->tick();
-	xin();
+	xin(otherPlayer);
+	std::vector<Enemy*> derefEnemies = *enemies;
+
+	if ((isTransformed && otherPlayer->isTransformed) && progress >= 0.0f)
+	{
+		std::cout << progress << std::endl;
+		progress -= updateTimer->getElapsedTimeS();
+		blackBar.scale = glm::scale(blackBar.ogScale, glm::vec3((transformMax - progress) / transformMax, 1.0f, 1.0f));
+		blackBar.move(0.0f, 0.0f);
+	}
+
+	if (progress <= 0.0f)
+	{
+		progress = 0.0f;
+		isTransformed = false;
+		otherPlayer->isTransformed = false;
+	}
 
 	for (int i = 0; i < projectiles.size(); i++)
 	{
 		projectiles[i]->move(projectiles[i]->getVelocity().x, projectiles[i]->getVelocity().y);
 
-		//Erase the projectile if it leaves the screen 
-		if ((projectiles[i]->location.x >= 10) || (projectiles[i]->location.y >= 10)
-			|| (projectiles[i]->location.x <= -10) || (projectiles[i]->location.y <= -10))
+		if (projectiles[i]->isOffscreen())
 		{
 			deleteProjectile(i);
 			break;
 		}
 
 		//Iterate through each enemy, check if current projectile is intersecting with it
-		for (int j = 0; j < enemies.size(); j++)
+		for (int j = 0; j < enemies->size(); j++)
 		{
-			if (projectiles[i]->collide(*enemies[j]))
+			if (projectiles[i]->collide(*derefEnemies[j]))
 			{
-				//Erase projectile, Erase enemy and spawn in a new location for now. 
-				deleteProjectile(i);
+				if(progress < transformMax)
+				{
+					progress++;
+					otherPlayer->progress++;
 
-				float x = (rand() % 10) - 5;
-				float y = (rand() % 10) - 5;
+					blackBar.scale = glm::scale(blackBar.ogScale, glm::vec3(1.0f - (progress / transformMax), 1.0f, 1.0f));
+					std::cout << 1.0f - (progress / transformMax) << std::endl;
+					blackBar.move(0, 0);
 
-				enemies[j]->move(-enemies[j]->location.x, -enemies[j]->location.y);
-				enemies[j]->move(x, y);
+					otherPlayer->blackBar.scale = glm::scale(otherPlayer->blackBar.ogScale, glm::vec3(1.0f - (progress / transformMax), 1.0f, 1.0f));
+					otherPlayer->blackBar.move(0, 0);
+
+					//Erase projectile, Erase enemy and spawn in a new location for now. 
+					deleteProjectile(i);
+
+					enemies->erase(enemies->begin() + j);
+					break;
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < enemies->size(); i++)
+	{
+		for (int j = 0; j < derefEnemies[i]->projectiles.size(); j++)
+		{
+			if (derefEnemies[i]->projectiles[j]->collide(*this))
+			{
+				alive = false;
 			}
 		}
 	}
 }
 
 //Getting input from the controller
-void Player::xin()
+void Player::xin(Player* otherPlayer)
 {
 	//Used for shooting delay
 	localTime += updateTimer->getElapsedTimeS();
-	
-	//poll controller
+
+	//poll controllers
 	controller.DownloadPackets(2);
 	controller.GetSticks(playerNum, lStick, rStick);
 
 	//Move the controller in the x axis based on the left stick's x axis, and they y likewise
-	move(lStick.xAxis * 0.25f, lStick.yAxis * 0.25f);
+	if (playerNum == 1)
+	{
+		if (!isTransformed || !otherPlayer->getTransform())
+			move(lStick.xAxis * 0.25f, lStick.yAxis * 0.25f);
 
+		else
+		{
+			setLocation(otherPlayer->location.x, otherPlayer->location.y);
+
+			glm::vec2 normalDir = glm::vec2(lStick.xAxis, lStick.yAxis);
+			float length = sqrt((normalDir.x * normalDir.x) + (normalDir.y * normalDir.y));
+			normalDir.x /= length;
+			normalDir.y /= length;
+
+			shield.setLocation(location.x, location.y);
+			
+			bool tilted = std::abs(lStick.xAxis) > 0.25f || std::abs(lStick.yAxis) > 0.25f ? true : false;
+			if (tilted)
+			{
+				if (normalDir.x <= 0.0f)
+				{
+					shield.rotate = glm::rotate(shield.ogRotate, acos(normalDir.y), glm::vec3(0.0f, 0.0f, 1.0f));
+				}
+
+				else
+				{
+					shield.rotate = glm::rotate(shield.ogRotate, -acos(normalDir.y), glm::vec3(0.0f, 0.0f, 1.0f));
+				}
+
+				shield.move(normalDir.x * 3.0f, normalDir.y * 3.0f);
+			}		
+		}
+	}
+
+	else
+		move(lStick.xAxis * 0.25f, lStick.yAxis * 0.25f);
+	
 	//Checking if the right stick is tilted more than a certain amount. tilted will be true if the right stick is being tilted.
 	bool tilted = std::abs(rStick.xAxis) > 0.25f || std::abs(rStick.yAxis) > 0.25f ? true : false;
 
@@ -76,8 +146,10 @@ void Player::xin()
 		shoot();
 	}
 
-	if (controller.GetButton(0, XBox::A)) {
-		std::cout << "A Pressed" << std::endl;
+	if (controller.GetButton(playerNum, XBox::LB) && (progress == transformMax)) 
+	{
+		isTransformed = true;
+		std::cout << isTransformed << std::endl;
 	}
 }
 
@@ -136,7 +208,7 @@ void Player::shoot()
 	}
 
 	//Assign velovity
-	temp->velocity = glm::vec2(0.2 * normalVel.x, 0.2 * normalVel.y);
+	temp->velocity = glm::vec2(0.4 * normalVel.x, 0.4 * normalVel.y);
 
 	projectiles.push_back(temp);
 }
